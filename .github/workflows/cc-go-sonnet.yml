@@ -55,4 +55,4 @@ jobs:
             Open a PR linked to this issue when complete.
           claude_args: |
             --model claude-sonnet-4-6
-            --max-turns 60
+            --max-turns 100
