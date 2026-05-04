@@ -1,0 +1,58 @@
+name: Claude Implement Issue (Sonnet)
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+
+# Per-issue concurrency: re-labeling the SAME issue cancels its
+# earlier in-flight run cleanly. Different issues are NOT serialized
+# here — turnstyle below handles that.
+concurrency:
+  group: claude-issue-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  implement:
+    if: github.event.label.name == 'cc-go-sonnet'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      # Cross-issue serialization: only one Claude run at a time
+      # across the whole repo, regardless of issue number.
+      # 4-hour ceiling so a wedged run can't block forever.
+      - name: Wait for other Claude runs to finish
+        uses: softprops/turnstyle@v3
+        with:
+          abort-after-seconds: 14400
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Implement issue #${{ github.event.issue.number }} per its
+            acceptance criteria.
+
+            Before you start, run `gh issue view ${{ github.event.issue.number }} --comments`
+            and read all comments — I often add clarifications and
+            constraints there that are not in the issue body.
+
+            Verify every acceptance criterion is met before opening the PR.
+            ultrathink before declaring the work done.
+
+            Open a PR linked to this issue when complete.
+          claude_args: |
+            --model claude-sonnet-4-6
+            --max-turns 60
