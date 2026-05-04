@@ -42,6 +42,9 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v3
 
+      - name: Install project dependencies
+        run: uv sync
+
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@v1
@@ -61,7 +64,9 @@ jobs:
             Verify every acceptance criterion is met before opening the PR.
             ultrathink before declaring the work done.
 
-            Open a PR linked to this issue when complete.
+            Open a PR linked to this issue when complete, and request
+            `mcnewcp` as a reviewer (pass `--reviewer mcnewcp` to
+            `gh pr create`).
           claude_args: |
             --model claude-sonnet-4-6
             --max-turns 60

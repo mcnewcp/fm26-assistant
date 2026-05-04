@@ -1,0 +1,39 @@
+# Example configuration for the FM26 agent.
+# Copy to config.toml and fill in your values.
+# Secrets (API keys) are never written here — set them as environment variables.
+
+[orchestration]
+# Maximum number of steps before the agent halts with "stuck / budget_exhausted".
+max_steps = 50
+# How many prior screenshots to retain in memory for change-detection checks.
+screenshot_history_size = 3
+
+[planner]
+# Which provider the planner uses.  Supported: nvidia | anthropic | openai
+provider = "nvidia"
+# Model name on the provider's API.
+model = "nemotron-3-nano-omni-30b-a3b-reasoning"
+# Base URL for the planner API endpoint.
+base_url = "https://integrate.api.nvidia.com/v1"
+# API key — set via NVIDIA_API_KEY environment variable instead of here.
+# nvidia_api_key = ""   ← do NOT put secrets in this file
+
+[grounder]
+# Which provider the grounder uses.  Supported: mlx_local | holo_api | planner_inline
+provider = "mlx_local"
+# Path to the locally-converted MLX model (only used when provider = "mlx_local").
+model_path = "./models/Holo2-8B-MLX-4bit"
+# URL of the local OpenAI-compatible server (mlx_vlm.server or Holo API endpoint).
+server_url = "http://localhost:8080/v1"
+
+[action]
+# MCP server to use for mouse/keyboard/screenshot actions.
+mcp_server = "computer-control-mcp"
+
+[scenarios]
+# Root-relative path to the directory containing scenario markdown files.
+directory = "scenarios"
+
+[observability]
+# Root-relative path where per-session run artifacts (screenshots, logs) are saved.
+sessions_dir = "runs"
