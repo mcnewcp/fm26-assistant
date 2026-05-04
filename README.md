@@ -2,6 +2,50 @@
 
 A multi-context monorepo for the FM26 assistant project (agent, telegram bot, and other surfaces TBD).
 
+## Quick start
+
+```bash
+# Install dependencies (creates .venv/)
+uv sync
+
+# Run tests
+uv run pytest
+
+# Type-check
+uv run pyright src/
+
+# Lint
+uv run ruff check src/
+```
+
+## Configuration
+
+Copy the example config and fill in your values:
+
+```bash
+cp config.example.toml config.toml
+```
+
+Secrets are never written to `config.toml` — set them as environment variables instead:
+
+```bash
+export NVIDIA_API_KEY=your_key_here
+```
+
+## Package layout (`src/agent/`)
+
+| Package | Responsibility |
+|---|---|
+| `agent/` | Top-level package — `Agent` class, `cli.py` entrypoint, `config.py` loader |
+| `agent/orchestration/` | Layer 1 — LangGraph state machine, nodes, graph composition |
+| `agent/operator/` | Layer 2 — `Operator` protocol, planner and grounder implementations |
+| `agent/action/` | Layer 3 — MCP client adapters, action-layer tool wrappers |
+| `agent/scenarios/` | Scenario loading, routing, and system-prompt rendering |
+| `agent/safety/` | Kill switch and session abort handling |
+| `agent/observability/` | Structured session logging and per-run artifact storage |
+
+Run artifacts (screenshots, logs) are saved to `runs/` at the repo root (gitignored).
+
 ## Working with this repo
 
 This repo uses [`mattpocock/skills`](https://github.com/mattpocock/skills) — a set of opinionated agent skills that structure how planning, ticketing, and implementation get done. The configuration for those skills lives in [docs/agents/](docs/agents/) and is summarised in [CLAUDE.md](CLAUDE.md).

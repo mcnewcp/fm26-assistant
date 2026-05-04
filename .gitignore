@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Virtual environment (uv)
+.venv/
+
+# Tool caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Run artifacts — sessions live here but are not tracked
+runs/*
+!runs/.gitkeep
+
+# Local config (copy from config.example.toml)
+config.toml
+
+# MLX model weights
+models/
+
+# macOS
+.DS_Store
