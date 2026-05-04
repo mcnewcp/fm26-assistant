@@ -5,14 +5,15 @@ on:
     types: [labeled]
 
 permissions:
-  contents: write
-  pull-requests: write
-  issues: write
+  contents: read
+  pull-requests: read
+  issues: read
   id-token: write
+  actions: read
 
 # Per-issue concurrency: re-labeling the SAME issue cancels its
-# earlier in-flight run cleanly. Different issues are NOT serialized
-# here — turnstyle below handles that.
+# earlier in-flight run cleanly. Cross-issue serialization is
+# handled by turnstyle below.
 concurrency:
   group: claude-issue-${{ github.event.issue.number }}
   cancel-in-progress: true
@@ -23,11 +24,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       # Cross-issue serialization: only one Claude run at a time
-      # across the whole repo, regardless of issue number.
-      # 4-hour ceiling so a wedged run can't block forever.
+      # across the whole repo. 4-hour ceiling so a wedged run
+      # can't block forever.
       - name: Wait for other Claude runs to finish
         uses: softprops/turnstyle@v3
         with:
@@ -38,9 +42,14 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v3
 
-      - uses: anthropics/claude-code-action@v1
+      - name: Run Claude Code
+        id: claude
+        uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          show_full_output: true
+          additional_permissions: |
+            actions: read
           prompt: |
             Implement issue #${{ github.event.issue.number }} per its
             acceptance criteria.
@@ -55,4 +64,5 @@ jobs:
             Open a PR linked to this issue when complete.
           claude_args: |
             --model claude-sonnet-4-6
-            --max-turns 100
+            --max-turns 60
+            --permission-mode bypassPermissions
