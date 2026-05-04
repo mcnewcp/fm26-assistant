@@ -1,0 +1,30 @@
+# fm26-assistant example configuration
+# Copy to config.toml and fill in your values.
+# Secrets (e.g. NVIDIA_API_KEY) must be set as environment variables — never commit them here.
+
+# Required: set via environment variable, not in this file
+# export NVIDIA_API_KEY=nvapi-...
+
+[orchestration]
+max_steps = 50
+screenshot_history_size = 3
+
+[planner]
+provider = "nvidia"
+model = "nemotron-3-nano-omni-30b-a3b-reasoning"
+base_url = "https://integrate.api.nvidia.com/v1"
+
+[grounder]
+provider = "mlx_local"
+model_path = "./models/Holo2-8B-MLX-4bit"
+server_url = "http://localhost:8080/v1"
+
+[action]
+mcp_server = "computer-control-mcp"
+
+[scenarios]
+# Path is relative to the repo root; points to the existing scenarios/ directory.
+directory = "scenarios"
+
+[observability]
+sessions_dir = "runs"

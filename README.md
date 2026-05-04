@@ -1,108 +1,57 @@
 # fm26-assistant
 
-A multi-context monorepo for the FM26 assistant project (agent, telegram bot, and other surfaces TBD).
+A computer-use agent that drives Football Manager 26, handling high-volume routine tasks and surfacing moments that need the player's attention.
+
+## Quickstart
+
+**Requirements:** Python 3.12+, [uv](https://docs.astral.sh/uv/)
+
+```bash
+# Install all dependencies (including dev tools)
+uv sync
+
+# Run tests
+uv run pytest
+
+# Type-check
+uv run pyright src/
+
+# Lint
+uv run ruff check src/
+```
+
+## Configuration
+
+Copy the example config and set your API key:
+
+```bash
+cp config.example.toml config.toml
+export NVIDIA_API_KEY=nvapi-...   # never put secrets in config.toml
+```
+
+Then run the agent:
+
+```bash
+uv run fm26 "advance to the next match"
+```
+
+## Package layout
+
+```
+src/agent/
+├── agent.py          # Public Agent class — the entry point for all surfaces
+├── cli.py            # CLI shell over Agent.run()
+├── config.py         # Config model (pydantic-settings + config.toml)
+├── orchestration/    # Layer 1 — LangGraph nodes, agent state, graph composition
+├── operator/         # Layer 2 — Operator protocol, planner, grounder
+├── action/           # Layer 3 — MCP server client, tool surface
+├── scenarios/        # Scenario markdown loading and router
+├── safety/           # Kill switch and abort handling
+└── observability/    # Structured logging and screenshot persistence
+```
+
+Session outputs (screenshots, logs) are written to `runs/` at the repo root.
 
 ## Working with this repo
 
-This repo uses [`mattpocock/skills`](https://github.com/mattpocock/skills) — a set of opinionated agent skills that structure how planning, ticketing, and implementation get done. The configuration for those skills lives in [docs/agents/](docs/agents/) and is summarised in [CLAUDE.md](CLAUDE.md).
-
-## The workflow loop
-
-```
-        ┌──── PLAN ──────┐
-        │ grill-with-docs│  ← interrogate, capture decisions inline
-        └────────┬───────┘
-                 ▼
-        ┌── CAPTURE ─────┐
-        │ to-prd         │  ← if it's a feature, publish a PRD issue
-        │ to-issues      │  ← break it into tracer-bullet tickets
-        └────────┬───────┘
-                 ▼
-        ┌── TRIAGE ──────┐
-        │ triage         │  ← move issues through the label state machine
-        └────────┬───────┘
-                 ▼
-        ┌── IMPLEMENT ───┐
-        │ tdd            │  ← red → green → refactor on a single ticket
-        └────────┬───────┘
-                 ▼
-        ┌── MAINTAIN ────┐
-        │ diagnose       │  ← when something breaks
-        │ improve-codebase-architecture │  ← periodic refactor sweeps
-        └────────────────┘
-```
-
-## When to reach for what
-
-### Planning
-
-- **`/grill-with-docs`** — your default planning tool. Interrogates you about a feature or design idea, checking against existing `CONTEXT.md` and ADRs. As decisions crystallise during the session, the skill writes them straight into the relevant `CONTEXT.md` (glossary, invariants) or opens a new ADR. Use whenever you have a vague idea you want to ground out.
-- **`/grill-me`** — same interrogation style but no doc-awareness. Use it for non-engineering planning (process, scope, prioritisation).
-
-### Capturing
-
-- **`/to-prd`** — at the end of a grilling session for a *feature*, formalise it into a PRD (Problem / Solution / User Stories / Implementation Decisions / Testing Decisions / Out of Scope) and publish it as a single GitHub issue.
-- **`/to-issues`** — break a PRD, plan, or spec into independently-grabbable vertical-slice tickets. Each ticket cuts end-to-end through every layer (schema → API → UI → tests) rather than being a horizontal slice. Each is tagged AFK (agent can grab it) or HITL (needs a human decision).
-
-### Triage
-
-- **`/triage`** — process incoming issues through a state machine:
-  - `needs-triage` → maintainer needs to evaluate
-  - `needs-info` → waiting on reporter
-  - `ready-for-agent` → fully specified, AFK-ready
-  - `ready-for-human` → needs human implementation
-  - `wontfix` → will not be actioned
-
-### Implementation
-
-- **`/tdd`** — red → green → refactor on a single ticket. Forces tests-first, especially valuable for backend/agent logic where behaviour is testable.
-
-### Maintenance
-
-- **`/diagnose`** — disciplined diagnosis loop for hard bugs and performance regressions. Reproduce → minimise → hypothesise → instrument → fix → regression-test.
-- **`/improve-codebase-architecture`** — periodic (not per-feature) refactor sweep. Looks for tightly-coupled modules to consolidate or deepen, informed by the domain language in `CONTEXT.md` and the decisions in `docs/adr/`.
-
-### Utility
-
-- **`/zoom-out`** — ask the agent for broader context when you're lost in a section of code.
-- **`/caveman`** — ultra-compressed responses when you want to save tokens.
-- **`/write-a-skill`** — create a new skill of your own.
-
-## PRD vs plan
-
-A **PRD** is a structured feature spec (Problem, Solution, User Stories, Implementation Decisions, Testing Decisions, Out of Scope). It lives as one GitHub issue and serves as the permanent reference for a feature.
-
-A **plan** is anything else that needs to become work — a refactor, a migration, an infrastructure change, a research spike. No fixed structure; it lives in conversation context.
-
-`/to-issues` accepts either, plus any other free-form spec. The flow is:
-
-```
-Feature work:    grill → /to-prd → PRD issue → /to-issues → ticket(s)
-Non-feature:     grill →           (skip)    → /to-issues → ticket(s)
-```
-
-The PRD step is optional — it's the formalisation pass for features that benefit from a permanent reference issue.
-
-## Domain documentation
-
-Two kinds of documents structure this repo's domain:
-
-- **`CONTEXT.md`** (per context, listed in `CONTEXT-MAP.md`) — glossary, invariants, and shape of one bounded context.
-- **`docs/adr/`** (root + per-context) — architectural decision records.
-
-You don't pre-write these. They emerge through `/grill-with-docs` sessions as terms and decisions actually crystallise. Hand-editing is fine.
-
-For raw, exploratory architecture material that hasn't been distilled yet, use `notes/`. The current high-level architecture sketch lives at [notes/architecture/01-HLAv1.md](notes/architecture/01-HLAv1.md).
-
-## Getting started
-
-The natural first move on a fresh repo:
-
-1. **Run `/grill-with-docs`** with `notes/architecture/01-HLAv1.md` as input. Goal: identify the bounded contexts (agent, telegram bot, etc.), write the initial `CONTEXT-MAP.md`, and capture the foundational ADRs (chat surface, agent runtime, persistence, etc.).
-2. **Pick the first vertical slice** — the smallest end-to-end thing that proves the system works (e.g. "Telegram message in → agent responds with stub data"). Run `/to-prd` to publish it as a GitHub issue.
-3. **Run `/to-issues`** against that PRD to break it into 3–5 grabbable tickets.
-4. **Pick one ticket, run `/tdd`**, ship it. Repeat.
-
-## Skill configuration
-
-If you ever need to change the issue tracker, triage labels, or domain doc layout, run `/setup-matt-pocock-skills` again. Or edit [docs/agents/](docs/agents/) directly — the files are plain markdown.
+See [README workflow section](README.md) for the planning → triage → implement loop powered by [`mattpocock/skills`](https://github.com/mattpocock/skills). Architecture details live in [`notes/architecture/01-HLAv1.md`](notes/architecture/01-HLAv1.md).

@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Virtual environment
+.venv/
+
+# uv
+uv.lock
+
+# Agent session outputs — ignore contents but keep the directory placeholder
+runs/*
+!runs/.gitkeep
+
+# Type checking caches
+.pyright/
+.mypy_cache/
+
+# Ruff cache
+.ruff_cache/
+
+# pytest cache
+.pytest_cache/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
