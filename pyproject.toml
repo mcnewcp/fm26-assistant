@@ -4,11 +4,13 @@ version = "0.1.0"
 description = "FM26 assistant agent — computer-use agent for Football Manager 26"
 requires-python = ">=3.12"
 dependencies = [
+    "httpx>=0.28.1",
     "pydantic-settings>=2.4",
 ]
 
 [project.scripts]
 agent = "agent.cli:main"
+operator-smoke = "agent.operator_smoke:main"
 
 [build-system]
 requires = ["hatchling"]

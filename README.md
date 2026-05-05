@@ -46,6 +46,36 @@ export NVIDIA_API_KEY=your_key_here
 
 Run artifacts (screenshots, logs) are saved to `runs/` at the repo root (gitignored).
 
+## operator-smoke CLI
+
+A lightweight CLI for testing the Operator (planner + stub grounder) in isolation, without running a full agent session.
+
+```bash
+# With a real NVIDIA NIM key:
+export NVIDIA_API_KEY=your_key_here
+uv run operator-smoke path/to/screenshot.png "Advance to the next match"
+
+# Or via python -m:
+uv run python -m agent.operator_smoke path/to/screenshot.png "Advance to the next match"
+```
+
+Output is the `ActionPlan` JSON produced by the planner, e.g.:
+
+```json
+{
+  "action_type": "click",
+  "target_description": "Continue button",
+  "text": null,
+  "key": null,
+  "note": "Match prep screen visible.",
+  "done": false,
+  "done_reason": null,
+  "summary": null
+}
+```
+
+The grounder is stubbed (returns a fixed coordinate) in this slice — real grounding lands in slice #8.
+
 ## Working with this repo
 
 This repo uses [`mattpocock/skills`](https://github.com/mattpocock/skills) — a set of opinionated agent skills that structure how planning, ticketing, and implementation get done. The configuration for those skills lives in [docs/agents/](docs/agents/) and is summarised in [CLAUDE.md](CLAUDE.md).
