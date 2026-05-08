@@ -96,8 +96,7 @@ def _parse_trigger(name: str, content: str) -> HandoffTrigger:
     """Parse a single HandoffTrigger from the raw content of an H3 sub-section."""
     found: dict[str, str] = {}
     for field_label, field_key in _TRIGGER_FIELD_MAP.items():
-        # Handle both **Field:** (colon inside bold) and **Field**: (colon outside bold).
-        pattern = re.compile(r"\*\*" + re.escape(field_label) + r"(?::\*\*|\*\*:)\s*(.*)")
+        pattern = re.compile(r"\*\*" + re.escape(field_label) + r":\*\*\s*(.*)")
         for line in content.splitlines():
             m = pattern.search(line)
             if m:
