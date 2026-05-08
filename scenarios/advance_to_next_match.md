@@ -68,6 +68,6 @@ V1 has one trigger:
 
 ### Player injury (own team)
 
-- **Visual signal**: a popup or inbox message from the medical / coaching staff reporting that a player has been injured (in training or in a previous match). The injured player is on the user's team (not an opponent).
-- **Surfaced summary**: `"<Player name> injured. Expected out: <duration if visible>. Source: <training | match | other>."`
-- **After surfacing**: terminate immediately. Do not continue advancing time.
+- **Visual signal:** a popup or inbox message from the medical / coaching staff reporting that a player has been injured (in training or in a previous match). The injured player is on the user's team (not an opponent).
+- **Surfaced summary:** `"<Player name> injured. Expected out: <duration if visible>. Source: <training | match | other>."`
+- **After surfacing:** terminate immediately. Do not continue advancing time.
