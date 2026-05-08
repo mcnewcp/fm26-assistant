@@ -20,46 +20,51 @@ _SCENARIOS_DIR = _REPO_ROOT / "scenarios"
 _FIXTURES_DIR = Path(__file__).parent / "fixtures" / "scenarios"
 
 
+@pytest.fixture(scope="module")
+def scenarios() -> list[Scenario]:
+    return load_scenarios(_SCENARIOS_DIR)
+
+
+@pytest.fixture(scope="module")
+def default_scenario(scenarios: list[Scenario]) -> Scenario:
+    return next(s for s in scenarios if s.name == "default")
+
+
+@pytest.fixture(scope="module")
+def advance_scenario(scenarios: list[Scenario]) -> Scenario:
+    return next(s for s in scenarios if s.name == "advance_to_next_match")
+
+
 # ---------------------------------------------------------------------------
 # Happy-path: default.md
 # ---------------------------------------------------------------------------
 
 
-def test_load_default_scenario_name() -> None:
-    scenarios = load_scenarios(_SCENARIOS_DIR)
-    default = next(s for s in scenarios if s.name == "default")
-    assert default.name == "default"
+def test_load_default_scenario_name(default_scenario: Scenario) -> None:
+    assert default_scenario.name == "default"
 
 
-def test_load_default_scenario_prose_sections_populated() -> None:
-    scenarios = load_scenarios(_SCENARIOS_DIR)
-    default = next(s for s in scenarios if s.name == "default")
-    assert default.when_to_use
-    assert default.goal_restatement
-    assert default.decomposition
-    assert default.ui_knowledge
-    assert default.note_taking
-    assert default.done_criteria
+def test_load_default_scenario_prose_sections_populated(default_scenario: Scenario) -> None:
+    assert default_scenario.when_to_use
+    assert default_scenario.goal_restatement
+    assert default_scenario.decomposition
+    assert default_scenario.ui_knowledge
+    assert default_scenario.note_taking
+    assert default_scenario.done_criteria
 
 
-def test_load_default_scenario_handoff_trigger_count() -> None:
-    scenarios = load_scenarios(_SCENARIOS_DIR)
-    default = next(s for s in scenarios if s.name == "default")
-    assert len(default.handoff_triggers) == 2
+def test_load_default_scenario_handoff_trigger_count(default_scenario: Scenario) -> None:
+    assert len(default_scenario.handoff_triggers) == 2
 
 
-def test_load_default_scenario_handoff_trigger_names() -> None:
-    scenarios = load_scenarios(_SCENARIOS_DIR)
-    default = next(s for s in scenarios if s.name == "default")
-    names = [t.name for t in default.handoff_triggers]
+def test_load_default_scenario_handoff_trigger_names(default_scenario: Scenario) -> None:
+    names = [t.name for t in default_scenario.handoff_triggers]
     assert "Application crash / unresponsive state" in names
     assert "Bizarre / unrecognized state" in names
 
 
-def test_load_default_scenario_trigger_fields_populated() -> None:
-    scenarios = load_scenarios(_SCENARIOS_DIR)
-    default = next(s for s in scenarios if s.name == "default")
-    for trigger in default.handoff_triggers:
+def test_load_default_scenario_trigger_fields_populated(default_scenario: Scenario) -> None:
+    for trigger in default_scenario.handoff_triggers:
         assert trigger.visual_signal
         assert trigger.surfaced_summary
         assert trigger.after_surfacing
@@ -70,39 +75,29 @@ def test_load_default_scenario_trigger_fields_populated() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_load_advance_scenario_name() -> None:
-    scenarios = load_scenarios(_SCENARIOS_DIR)
-    advance = next(s for s in scenarios if s.name == "advance_to_next_match")
-    assert advance.name == "advance_to_next_match"
+def test_load_advance_scenario_name(advance_scenario: Scenario) -> None:
+    assert advance_scenario.name == "advance_to_next_match"
 
 
-def test_load_advance_scenario_prose_sections_populated() -> None:
-    scenarios = load_scenarios(_SCENARIOS_DIR)
-    advance = next(s for s in scenarios if s.name == "advance_to_next_match")
-    assert advance.when_to_use
-    assert advance.goal_restatement
-    assert advance.decomposition
-    assert advance.ui_knowledge
-    assert advance.note_taking
-    assert advance.done_criteria
+def test_load_advance_scenario_prose_sections_populated(advance_scenario: Scenario) -> None:
+    assert advance_scenario.when_to_use
+    assert advance_scenario.goal_restatement
+    assert advance_scenario.decomposition
+    assert advance_scenario.ui_knowledge
+    assert advance_scenario.note_taking
+    assert advance_scenario.done_criteria
 
 
-def test_load_advance_scenario_handoff_trigger_count() -> None:
-    scenarios = load_scenarios(_SCENARIOS_DIR)
-    advance = next(s for s in scenarios if s.name == "advance_to_next_match")
-    assert len(advance.handoff_triggers) == 1
+def test_load_advance_scenario_handoff_trigger_count(advance_scenario: Scenario) -> None:
+    assert len(advance_scenario.handoff_triggers) == 1
 
 
-def test_load_advance_scenario_handoff_trigger_name() -> None:
-    scenarios = load_scenarios(_SCENARIOS_DIR)
-    advance = next(s for s in scenarios if s.name == "advance_to_next_match")
-    assert advance.handoff_triggers[0].name == "Player injury (own team)"
+def test_load_advance_scenario_handoff_trigger_name(advance_scenario: Scenario) -> None:
+    assert advance_scenario.handoff_triggers[0].name == "Player injury (own team)"
 
 
-def test_load_advance_scenario_trigger_fields_populated() -> None:
-    scenarios = load_scenarios(_SCENARIOS_DIR)
-    advance = next(s for s in scenarios if s.name == "advance_to_next_match")
-    trigger = advance.handoff_triggers[0]
+def test_load_advance_scenario_trigger_fields_populated(advance_scenario: Scenario) -> None:
+    trigger = advance_scenario.handoff_triggers[0]
     assert trigger.visual_signal
     assert trigger.surfaced_summary
     assert trigger.after_surfacing
@@ -113,17 +108,66 @@ def test_load_advance_scenario_trigger_fields_populated() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_scenario_is_scenario_type() -> None:
-    scenarios = load_scenarios(_SCENARIOS_DIR)
+def test_scenario_is_scenario_type(scenarios: list[Scenario]) -> None:
     for s in scenarios:
         assert isinstance(s, Scenario)
 
 
-def test_handoff_trigger_is_handofftrigger_type() -> None:
-    scenarios = load_scenarios(_SCENARIOS_DIR)
-    default = next(s for s in scenarios if s.name == "default")
-    for t in default.handoff_triggers:
+def test_handoff_trigger_is_handofftrigger_type(default_scenario: Scenario) -> None:
+    for t in default_scenario.handoff_triggers:
         assert isinstance(t, HandoffTrigger)
+
+
+# ---------------------------------------------------------------------------
+# Section slicing — fixture with unique markers per section catches off-by-one
+# bugs in the H2/H3 line-map slicing that the truthiness checks above miss.
+# ---------------------------------------------------------------------------
+
+
+def test_section_slicing_routes_each_marker_to_its_own_field() -> None:
+    scenario = parse_scenario_file(_FIXTURES_DIR / "section_boundaries.md")
+
+    field_to_marker = {
+        "when_to_use": "WHEN_TO_USE_MARKER",
+        "goal_restatement": "GOAL_RESTATEMENT_MARKER",
+        "decomposition": "DECOMPOSITION_MARKER",
+        "ui_knowledge": "UI_KNOWLEDGE_MARKER",
+        "note_taking": "NOTE_TAKING_MARKER",
+        "done_criteria": "DONE_CRITERIA_MARKER",
+    }
+
+    for field, own_marker in field_to_marker.items():
+        value = getattr(scenario, field)
+        assert own_marker in value, f"{field} missing its own marker {own_marker}"
+        for other_field, other_marker in field_to_marker.items():
+            if other_field == field:
+                continue
+            assert other_marker not in value, (
+                f"{field} leaked content from {other_field} ({other_marker})"
+            )
+
+
+def test_section_slicing_routes_each_trigger_marker_to_its_own_field() -> None:
+    scenario = parse_scenario_file(_FIXTURES_DIR / "section_boundaries.md")
+    assert len(scenario.handoff_triggers) == 1
+    trigger = scenario.handoff_triggers[0]
+    assert trigger.name == "Boundary trigger"
+
+    field_to_marker = {
+        "visual_signal": "VISUAL_SIGNAL_MARKER",
+        "surfaced_summary": "SURFACED_SUMMARY_MARKER",
+        "after_surfacing": "AFTER_SURFACING_MARKER",
+    }
+
+    for field, own_marker in field_to_marker.items():
+        value = getattr(trigger, field)
+        assert own_marker in value, f"{field} missing its own marker {own_marker}"
+        for other_field, other_marker in field_to_marker.items():
+            if other_field == field:
+                continue
+            assert other_marker not in value, (
+                f"{field} leaked content from {other_field} ({other_marker})"
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -131,8 +175,7 @@ def test_handoff_trigger_is_handofftrigger_type() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_universal_triggers_returns_default_triggers() -> None:
-    scenarios = load_scenarios(_SCENARIOS_DIR)
+def test_universal_triggers_returns_default_triggers(scenarios: list[Scenario]) -> None:
     universal = get_universal_handoff_triggers(scenarios)
     assert len(universal) == 2
     names = [t.name for t in universal]
@@ -140,8 +183,7 @@ def test_universal_triggers_returns_default_triggers() -> None:
     assert "Bizarre / unrecognized state" in names
 
 
-def test_universal_triggers_raises_when_no_default() -> None:
-    scenarios = load_scenarios(_SCENARIOS_DIR)
+def test_universal_triggers_raises_when_no_default(scenarios: list[Scenario]) -> None:
     non_default = [s for s in scenarios if s.name != "default"]
     with pytest.raises(MissingDefaultScenarioError):
         get_universal_handoff_triggers(non_default)
