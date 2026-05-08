@@ -1,0 +1,1 @@
+"""Operator smoke CLI package."""

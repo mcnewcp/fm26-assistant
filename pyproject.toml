@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "FM26 assistant agent — computer-use agent for Football Manager 26"
 requires-python = ">=3.12"
 dependencies = [
+    "openai>=1.0",
     "pydantic-settings>=2.4",
     "markdown-it-py>=3.0",
 ]
