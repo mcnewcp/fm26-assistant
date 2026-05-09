@@ -107,7 +107,7 @@ class NemotronPlannerClient:
                 model=self._model,
                 messages=messages,  # type: ignore[arg-type]
                 response_format=ResponseFormatJSONObject(type="json_object"),
-                max_tokens=1024,
+                max_tokens=4096,
             )
             raw = response.choices[0].message.content or ""
             try:

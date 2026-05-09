@@ -12,7 +12,7 @@ from agent.operator.protocol import Operator, StubGrounderClient
 _NVIDIA_STUB_TOML = """\
 [planner]
 provider = "nvidia"
-model = "nemotron-3-nano-omni-30b-a3b-reasoning"
+model = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning"
 base_url = "https://integrate.api.nvidia.com/v1"
 
 [grounder]

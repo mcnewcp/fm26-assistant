@@ -28,7 +28,7 @@ _VALID_ACTION_TYPES = frozenset(
 
 async def test_nemotron_planner_returns_valid_action_plan() -> None:
     planner = NemotronPlannerClient(
-        model="nemotron-3-nano-omni-30b-a3b-reasoning",
+        model="nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
         base_url="https://integrate.api.nvidia.com/v1",
         api_key=_NVIDIA_API_KEY,
     )
