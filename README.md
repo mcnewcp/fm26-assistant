@@ -46,6 +46,36 @@ export NVIDIA_API_KEY=your_key_here
 
 Run artifacts (screenshots, logs) are saved to `runs/` at the repo root (gitignored).
 
+## Operator smoke CLI
+
+Verify that the planner is wired correctly by running it against a local screenshot:
+
+```bash
+# Requires NVIDIA_API_KEY and a config.toml with planner.provider = "nvidia"
+export NVIDIA_API_KEY=your_key_here
+python -m agent.operator_smoke path/to/screenshot.png "advance to the next match"
+```
+
+The command loads `config.toml`, builds an `Operator` with the configured planner
+and a stub grounder, calls `propose_action`, and prints the resulting `ActionPlan` as
+JSON. The stub grounder returns a fixed coordinate `(640, 400)` for any grounding
+request, so no local model is needed for this check.
+
+Example output:
+
+```json
+{
+  "action_type": "screenshot",
+  "target_description": null,
+  "text": null,
+  "key": null,
+  "note": "Observing current screen state before deciding next action.",
+  "done": false,
+  "done_reason": null,
+  "summary": null
+}
+```
+
 ## Working with this repo
 
 This repo uses [`mattpocock/skills`](https://github.com/mattpocock/skills) — a set of opinionated agent skills that structure how planning, ticketing, and implementation get done. The configuration for those skills lives in [docs/agents/](docs/agents/) and is summarised in [CLAUDE.md](CLAUDE.md).

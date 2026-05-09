@@ -11,7 +11,7 @@ from agent.config import load_config
 _MINIMAL_TOML = """\
 [planner]
 provider = "nvidia"
-model = "nemotron-3-nano-omni-30b-a3b-reasoning"
+model = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning"
 base_url = "https://integrate.api.nvidia.com/v1"
 
 [grounder]
@@ -29,7 +29,7 @@ def test_loads_values_from_toml(tmp_path: Path) -> None:
     content = _MINIMAL_TOML + "\n[orchestration]\nmax_steps = 25\n"
     cfg = load_config(_cfg_file(tmp_path, content))
     assert cfg.planner.provider == "nvidia"
-    assert cfg.planner.model == "nemotron-3-nano-omni-30b-a3b-reasoning"
+    assert cfg.planner.model == "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning"
     assert cfg.planner.base_url == "https://integrate.api.nvidia.com/v1"
     assert cfg.grounder.provider == "mlx_local"
     assert cfg.orchestration.max_steps == 25
