@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>FM26 Grounder Spike — Labeler</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, system-ui, sans-serif; margin: 0; display: flex; height: 100vh; }
+    #sidebar { width: 300px; padding: 14px; border-right: 1px solid #ddd; overflow-y: auto; flex-shrink: 0; }
+    #stage { flex: 1; padding: 16px; overflow: auto; background: #1a1a1a; }
+    #canvas-wrap { display: inline-block; }
+    canvas { display: block; cursor: crosshair; box-shadow: 0 0 0 1px #444; }
+    h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin: 18px 0 6px; }
+    h2:first-of-type { margin-top: 0; }
+    button { padding: 6px 10px; font-size: 13px; cursor: pointer; }
+    input[type=text] { padding: 6px 8px; width: 100%; font-size: 13px; }
+    input[type=file] { font-size: 12px; }
+    .nav { display: flex; gap: 6px; margin: 6px 0; }
+    .nav button { flex: 1; }
+    #status { margin: 6px 0; font-size: 12px; color: #666; }
+    .img-list { max-height: 220px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px; }
+    .img-pill { padding: 5px 8px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+    .img-pill:hover { background: #f8f8f8; }
+    .img-pill.current { background: #2a6cb0; color: white; }
+    .img-pill .badge { background: #ccc; color: white; padding: 1px 7px; border-radius: 9px; font-size: 11px; }
+    .img-pill.has-targets .badge { background: #4a8c5a; }
+    .img-pill.current .badge { background: rgba(255,255,255,0.3); }
+    .target { padding: 6px 8px; margin: 4px 0; background: #f4f4f4; border-radius: 4px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .target b { font-size: 13px; }
+    .target small { color: #888; font-family: ui-monospace, monospace; }
+    .target button { padding: 2px 7px; font-size: 11px; }
+    .empty { color: #999; font-size: 12px; font-style: italic; }
+    .actions { display: flex; gap: 6px; }
+    .actions button { flex: 1; }
+    kbd { background: #eee; border: 1px solid #ccc; border-radius: 3px; padding: 1px 5px; font-size: 11px; font-family: ui-monospace, monospace; }
+  </style>
+</head>
+<body>
+  <div id="sidebar">
+    <h2>1. Load PNG screenshots</h2>
+    <input type="file" id="files" multiple accept="image/png,image/jpeg">
+    <div id="status">No images loaded.</div>
+
+    <h2>2. Navigate</h2>
+    <div class="nav">
+      <button id="prev">← Prev</button>
+      <button id="next">Next →</button>
+    </div>
+    <div style="font-size:11px;color:#888;margin-bottom:4px;">Arrow keys also work.</div>
+    <div id="img-list" class="img-list"></div>
+
+    <h2>3. Label name</h2>
+    <input type="text" id="next-label" placeholder='e.g. "Close button"'>
+    <div style="font-size:11px;color:#888;margin-top:4px;">Type a label, then drag a box on the image. Empty = prompt.</div>
+
+    <h2>4. Targets on this image</h2>
+    <div id="targets"></div>
+
+    <h2>5. Export</h2>
+    <div class="actions">
+      <button id="download">Download labels.json</button>
+      <button id="clear">Clear all</button>
+    </div>
+    <div style="font-size:11px;color:#888;margin-top:6px;">Labels persist in localStorage. Re-pick the same files to resume.</div>
+  </div>
+
+  <div id="stage">
+    <div id="canvas-wrap">
+      <canvas id="canvas" width="600" height="400"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'fm26_labeler_v1';
+    let images = [];
+    let idx = 0;
+    let drawing = null;
+    let imgEl = new Image();
+
+    const $ = s => document.querySelector(s);
+    const canvas = $('#canvas');
+    const ctx = canvas.getContext('2d');
+
+    function persist() {
+      const compact = images.map(i => ({ name: i.name, w: i.w, h: i.h, targets: i.targets }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(compact));
+    }
+
+    function loadStored() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+      catch { return []; }
+    }
+
+    $('#files').addEventListener('change', async (e) => {
+      const stored = loadStored();
+      const fileList = [...e.target.files].sort((a, b) => a.name.localeCompare(b.name));
+      images = [];
+      for (const f of fileList) {
+        const dataUrl = await new Promise(res => {
+          const r = new FileReader();
+          r.onload = () => res(r.result);
+          r.readAsDataURL(f);
+        });
+        const dims = await new Promise(res => {
+          const im = new Image();
+          im.onload = () => res({ w: im.naturalWidth, h: im.naturalHeight });
+          im.src = dataUrl;
+        });
+        const prior = stored.find(s => s.name === f.name);
+        images.push({
+          name: f.name,
+          w: dims.w,
+          h: dims.h,
+          dataUrl,
+          targets: prior ? prior.targets : []
+        });
+      }
+      idx = 0;
+      render();
+    });
+
+    function render() {
+      if (images.length === 0) {
+        $('#status').textContent = loadStored().length
+          ? `${loadStored().length} prior labels in localStorage — re-select the PNG folder to continue.`
+          : 'No images loaded.';
+        $('#targets').innerHTML = '';
+        $('#img-list').innerHTML = '';
+        return;
+      }
+      const cur = images[idx];
+      $('#status').textContent = `${idx + 1} / ${images.length} — ${cur.name} (${cur.w}×${cur.h})`;
+      $('#img-list').innerHTML = images.map((im, i) => `
+        <div class="img-pill ${i === idx ? 'current' : ''} ${im.targets.length ? 'has-targets' : ''}" data-i="${i}">
+          <span>${im.name}</span><span class="badge">${im.targets.length}</span>
+        </div>
+      `).join('');
+      $('#img-list').querySelectorAll('.img-pill').forEach(el => {
+        el.onclick = () => { idx = +el.dataset.i; render(); };
+      });
+      renderTargets();
+      imgEl = new Image();
+      imgEl.onload = () => {
+        canvas.width = imgEl.naturalWidth;
+        canvas.height = imgEl.naturalHeight;
+        const maxW = window.innerWidth - 340;
+        const maxH = window.innerHeight - 32;
+        const scale = Math.min(1, maxW / imgEl.naturalWidth, maxH / imgEl.naturalHeight);
+        canvas.style.width = (imgEl.naturalWidth * scale) + 'px';
+        canvas.style.height = (imgEl.naturalHeight * scale) + 'px';
+        redraw();
+      };
+      imgEl.src = cur.dataUrl;
+    }
+
+    function redraw() {
+      if (!imgEl.complete || !images[idx]) return;
+      const cur = images[idx];
+      ctx.drawImage(imgEl, 0, 0);
+      ctx.lineWidth = Math.max(2, Math.round(cur.w / 600));
+      const fontSize = Math.max(14, Math.round(cur.w / 80));
+      ctx.font = `bold ${fontSize}px sans-serif`;
+      cur.targets.forEach(t => {
+        const [x, y, w, h] = t.bbox;
+        ctx.strokeStyle = '#0f0';
+        ctx.fillStyle = 'rgba(0,255,0,0.15)';
+        ctx.fillRect(x, y, w, h);
+        ctx.strokeRect(x, y, w, h);
+        const tw = ctx.measureText(t.label).width;
+        ctx.fillStyle = 'rgba(0,0,0,0.75)';
+        ctx.fillRect(x, y - fontSize - 4, tw + 10, fontSize + 6);
+        ctx.fillStyle = '#0f0';
+        ctx.fillText(t.label, x + 5, y - 5);
+      });
+      if (drawing) {
+        ctx.strokeStyle = '#ff0';
+        ctx.setLineDash([8, 5]);
+        ctx.strokeRect(drawing.x, drawing.y, drawing.w, drawing.h);
+        ctx.setLineDash([]);
+      }
+    }
+
+    function renderTargets() {
+      const cur = images[idx];
+      if (!cur.targets.length) {
+        $('#targets').innerHTML = '<div class="empty">no targets — drag a box on the image</div>';
+        return;
+      }
+      $('#targets').innerHTML = cur.targets.map((t, i) => `
+        <div class="target">
+          <span><b>${escapeHtml(t.label)}</b><br><small>${t.bbox.map(Math.round).join(', ')}</small></span>
+          <button data-i="${i}">×</button>
+        </div>
+      `).join('');
+      $('#targets').querySelectorAll('button').forEach(b => {
+        b.onclick = () => {
+          cur.targets.splice(+b.dataset.i, 1);
+          persist();
+          render();
+        };
+      });
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function canvasCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      const sx = canvas.width / rect.width;
+      const sy = canvas.height / rect.height;
+      return {
+        x: Math.max(0, Math.min(canvas.width, (e.clientX - rect.left) * sx)),
+        y: Math.max(0, Math.min(canvas.height, (e.clientY - rect.top) * sy))
+      };
+    }
+
+    canvas.addEventListener('mousedown', e => {
+      if (!images.length) return;
+      const p = canvasCoords(e);
+      drawing = { startX: p.x, startY: p.y, x: p.x, y: p.y, w: 0, h: 0 };
+    });
+    canvas.addEventListener('mousemove', e => {
+      if (!drawing) return;
+      const p = canvasCoords(e);
+      drawing.x = Math.min(drawing.startX, p.x);
+      drawing.y = Math.min(drawing.startY, p.y);
+      drawing.w = Math.abs(p.x - drawing.startX);
+      drawing.h = Math.abs(p.y - drawing.startY);
+      redraw();
+    });
+    canvas.addEventListener('mouseup', () => {
+      if (!drawing) return;
+      const d = drawing;
+      drawing = null;
+      if (d.w > 4 && d.h > 4) {
+        let label = $('#next-label').value.trim();
+        if (!label) label = (prompt('Label for this target:') || '').trim();
+        if (label) {
+          images[idx].targets.push({
+            label,
+            bbox: [Math.round(d.x), Math.round(d.y), Math.round(d.w), Math.round(d.h)]
+          });
+          persist();
+        }
+      }
+      render();
+    });
+
+    $('#prev').onclick = () => { if (images.length && idx > 0) { idx--; render(); } };
+    $('#next').onclick = () => { if (images.length && idx < images.length - 1) { idx++; render(); } };
+    document.addEventListener('keydown', e => {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.key === 'ArrowLeft') $('#prev').click();
+      else if (e.key === 'ArrowRight') $('#next').click();
+    });
+
+    $('#download').onclick = () => {
+      if (!images.length) { alert('Load images first.'); return; }
+      const out = {
+        version: 1,
+        images: images.map(i => ({
+          image: i.name,
+          width: i.w,
+          height: i.h,
+          targets: i.targets
+        }))
+      };
+      const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'labels.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    $('#clear').onclick = () => {
+      if (!confirm('Clear all labels from localStorage and the current session?')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      images.forEach(i => i.targets = []);
+      render();
+    };
+
+    render();
+  </script>
+</body>
+</html>
