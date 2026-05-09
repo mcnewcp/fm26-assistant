@@ -12,7 +12,7 @@ screenshot_history_size = 3
 # Which provider the planner uses.  Supported: nvidia | anthropic | openai
 provider = "nvidia"
 # Model name on the provider's API.
-model = "nemotron-3-nano-omni-30b-a3b-reasoning"
+model = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning"
 # Base URL for the planner API endpoint.
 base_url = "https://integrate.api.nvidia.com/v1"
 # API key — set via NVIDIA_API_KEY environment variable instead of here.
