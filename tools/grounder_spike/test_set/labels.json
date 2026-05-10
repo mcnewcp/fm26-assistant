@@ -1,0 +1,388 @@
+{
+  "version": 1,
+  "images": [
+    {
+      "image": "01-match.jpg",
+      "width": 1920,
+      "height": 1080,
+      "targets": [
+        {
+          "label": "pause button",
+          "bbox": [
+            1851,
+            12,
+            53,
+            39
+          ]
+        },
+        {
+          "label": "instructions button",
+          "bbox": [
+            150,
+            11,
+            138,
+            41
+          ]
+        }
+      ]
+    },
+    {
+      "image": "02-tactics.jpg",
+      "width": 1920,
+      "height": 1080,
+      "targets": [
+        {
+          "label": "continue button",
+          "bbox": [
+            1651,
+            4,
+            244,
+            48
+          ]
+        },
+        {
+          "label": "matchday dropdown",
+          "bbox": [
+            639,
+            8,
+            37,
+            35
+          ]
+        },
+        {
+          "label": "player dropdown for striker position",
+          "bbox": [
+            1636,
+            760,
+            31,
+            30
+          ]
+        }
+      ]
+    },
+    {
+      "image": "03-match.jpg",
+      "width": 1920,
+      "height": 1080,
+      "targets": [
+        {
+          "label": "play button",
+          "bbox": [
+            1851,
+            13,
+            54,
+            38
+          ]
+        },
+        {
+          "label": "tactics button",
+          "bbox": [
+            14,
+            16,
+            141,
+            37
+          ]
+        }
+      ]
+    },
+    {
+      "image": "04-home.jpg",
+      "width": 1920,
+      "height": 1080,
+      "targets": [
+        {
+          "label": "squad dropdown",
+          "bbox": [
+            351,
+            11,
+            38,
+            32
+          ]
+        },
+        {
+          "label": "settings gear icon",
+          "bbox": [
+            1474,
+            8,
+            52,
+            40
+          ]
+        }
+      ]
+    },
+    {
+      "image": "05-matchday-dropdown.png",
+      "width": 3106,
+      "height": 2160,
+      "targets": [
+        {
+          "label": "tactics selection",
+          "bbox": [
+            911,
+            390,
+            393,
+            55
+          ]
+        },
+        {
+          "label": "portal dropdown",
+          "bbox": [
+            459,
+            228,
+            59,
+            48
+          ]
+        }
+      ]
+    },
+    {
+      "image": "06-squad-dropdown.png",
+      "width": 3106,
+      "height": 2160,
+      "targets": [
+        {
+          "label": "training selection",
+          "bbox": [
+            532,
+            495,
+            304,
+            62
+          ]
+        }
+      ]
+    },
+    {
+      "image": "07-portal-dropdown.png",
+      "width": 3106,
+      "height": 2160,
+      "targets": [
+        {
+          "label": "messages selection",
+          "bbox": [
+            381,
+            340,
+            281,
+            55
+          ]
+        }
+      ]
+    },
+    {
+      "image": "08-home.png",
+      "width": 3106,
+      "height": 2160,
+      "targets": [
+        {
+          "label": "matchday dropdown",
+          "bbox": [
+            1052,
+            224,
+            71,
+            57
+          ]
+        }
+      ]
+    },
+    {
+      "image": "09-inbox.png",
+      "width": 3106,
+      "height": 2160,
+      "targets": [
+        {
+          "label": "unread selection",
+          "bbox": [
+            443,
+            440,
+            178,
+            66
+          ]
+        },
+        {
+          "label": "squad selection rules message",
+          "bbox": [
+            139,
+            710,
+            792,
+            110
+          ]
+        }
+      ]
+    },
+    {
+      "image": "10-email.png",
+      "width": 3106,
+      "height": 2160,
+      "targets": [
+        {
+          "label": "decline introduction",
+          "bbox": [
+            1283,
+            1755,
+            260,
+            73
+          ]
+        }
+      ]
+    },
+    {
+      "image": "11-tactics.png",
+      "width": 3106,
+      "height": 2160,
+      "targets": [
+        {
+          "label": "team instructions",
+          "bbox": [
+            320,
+            500,
+            246,
+            71
+          ]
+        }
+      ]
+    },
+    {
+      "image": "12-calendar.png",
+      "width": 1991,
+      "height": 1202,
+      "targets": [
+        {
+          "label": "training calendar selection",
+          "bbox": [
+            135,
+            214,
+            94,
+            45
+          ]
+        }
+      ]
+    },
+    {
+      "image": "13-settings.png",
+      "width": 1991,
+      "height": 1202,
+      "targets": [
+        {
+          "label": "save game button",
+          "bbox": [
+            920,
+            391,
+            118,
+            51
+          ]
+        }
+      ]
+    },
+    {
+      "image": "14-training-overview.png",
+      "width": 1991,
+      "height": 1202,
+      "targets": [
+        {
+          "label": "tactics panel",
+          "bbox": [
+            436,
+            316,
+            373,
+            370
+          ]
+        }
+      ]
+    },
+    {
+      "image": "15-training-calendar.png",
+      "width": 1991,
+      "height": 1202,
+      "targets": [
+        {
+          "label": "recovery block on Thursday July 17",
+          "bbox": [
+            980,
+            635,
+            231,
+            42
+          ]
+        }
+      ]
+    },
+    {
+      "image": "16-squad-overview.png",
+      "width": 1991,
+      "height": 1202,
+      "targets": [
+        {
+          "label": "Jose Giminez player row",
+          "bbox": [
+            83,
+            467,
+            192,
+            37
+          ]
+        }
+      ]
+    },
+    {
+      "image": "17-recruitment-overview.png",
+      "width": 1991,
+      "height": 1202,
+      "targets": [
+        {
+          "label": "recruitment focuses selection",
+          "bbox": [
+            617,
+            133,
+            159,
+            34
+          ]
+        }
+      ]
+    },
+    {
+      "image": "18-player-database.png",
+      "width": 1991,
+      "height": 1202,
+      "targets": [
+        {
+          "label": "edit search button",
+          "bbox": [
+            1576,
+            202,
+            132,
+            59
+          ]
+        }
+      ]
+    },
+    {
+      "image": "19-player-attributes.png",
+      "width": 1991,
+      "height": 1202,
+      "targets": [
+        {
+          "label": "scout player button",
+          "bbox": [
+            1586,
+            247,
+            155,
+            51
+          ]
+        }
+      ]
+    },
+    {
+      "image": "20-training-intensity.png",
+      "width": 1991,
+      "height": 1202,
+      "targets": [
+        {
+          "label": "normal intensity dropdown next to yellow half filled heart",
+          "bbox": [
+            696,
+            481,
+            287,
+            41
+          ]
+        }
+      ]
+    }
+  ]
+}
